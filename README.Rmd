@@ -5,78 +5,75 @@ date: "February 20, 2015"
 output: html_document
 ---
 
+### Course Project for Coursera Getting & Reading Data Course
 
-# Course Project for Coursera Get Data
+This project uses data on physical movements associated with activities of daily living (ADLs) based on experimental data.  
+The output incorporates data manipulation from raw internet files, data management, and computation of simple summary statistics.  
+Details are below:  
 
-# You should create one R script called run_analysis.R that does the following. 
-# 1. Merges the training and the test sets to create one data set.
-# 2. Extracts only the measurements on the mean and standard deviation for each measurement. 
-# 3. Uses descriptive activity names to name the activities in the data set
-# 4. Appropriately labels the data set with descriptive variable names. 
-# 5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+### Coursera project instructions:  
+1. Merge the training and the test sets to create one data set.  
+2. Extract only the measurements on the mean and standard deviation for each measurement.   
+3. Use descriptive activity names to name the activities in the data set  
+4. Appropriately label the data set with descriptive variable names.   
+5. Create a second, independent tidy data set with the average of each variable for each activity and each subject.  
 
-# loads required packages
-library(dplyr); library(reshape2)
+### Step 1: Download data  
 
-# load datasets
-x_train = read.table("UCI HAR Dataset/train/X_train.txt")
-y_train = read.table("UCI HAR Dataset/train/Y_train.txt")
-x_test = read.table("UCI HAR Dataset/test/X_test.txt")
-y_test = read.table("UCI HAR Dataset/test/Y_test.txt")
-x_features = read.table("UCI HAR Dataset/features.txt")
-subject_train = read.table("UCI HAR Dataset/train/subject_train.txt")
-subject_test = read.table("UCI HAR Dataset/test/subject_test.txt")
-activity_lbls = read.table("UCI HAR Dataset/activity_labels.txt",stringsAsFactors=FALSE)
-names(activity_lbls)[2] = "activity"  # changes to descriptive label for use in tidy dataset
+- Go to <https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip> to get experimental data  
+- Unzip file.    
+- The program file, run_analysis.R, will do all steps list above if the unzipped folder is placed in R's default working directory.  
 
-# QUESTION 1 - MERGE DATA
-# merge the train and test datasets - x, y, subject, and activity_lbls
-subject = rbind(subject_train, subject_test)
-names(subject)[1] = "subject"    # changes to descriptive label for use in tidy dataset
-x = rbind(x_train, x_test)
-colnames(x) = x_features$V2   # renames descriptively, as required in question #4
-y = rbind(y_train, y_test)
-y = merge(y, activity_lbls, by.x="V1", by.y="V1", all=TRUE)  # essentially an "Excel vlookup" to add descriptive activity values
-y = subset(y, select = -c(V1))   # drops redundant variable that was duplicated in merge above ("Y1") in favor of "activity"
-dat = cbind(y,x)                 # merges the x and y datasets
+### Step 2: R program description: run_analysis.R  
 
-# QUESTION 2 - EXTRACT THE MEAN & SD FOR EACH VARIABLE
-dat_forstats = subset(dat, select = -c(activity))
-dat_mean = sapply(dat_forstats,mean)
-dat_sd = sapply(dat_forstats,sd)
-dat_stats = rbind(dat_mean, dat_sd)  # combines to one data frame with mean and sd for each variable
+The program details below execute the steps associated with the project instructions, as follows:  
 
-# QUESTION 3 - NAME THE ACTIVITES DESCRIPTIVELY
-# completed above, where it is more appropriate -- see line 31
+#### loads required packages  
+library(dplyr); library(reshape2)  
 
-# QUESTION 4 - LABEL THE VARIABLES DESCRIPTIVELY
-# completed above, where it is more appropriate -- see line 29
+#### loads the experimental datasets  
+x_train = read.table("UCI HAR Dataset/train/X_train.txt")  
+y_train = read.table("UCI HAR Dataset/train/Y_train.txt")  
+x_test = read.table("UCI HAR Dataset/test/X_test.txt")  
+y_test = read.table("UCI HAR Dataset/test/Y_test.txt")  
+x_features = read.table("UCI HAR Dataset/features.txt")  
+subject_train = read.table("UCI HAR Dataset/train/subject_train.txt")  
+subject_test = read.table("UCI HAR Dataset/test/subject_test.txt")  
+activity_lbls = read.table("UCI HAR Dataset/activity_labels.txt",stringsAsFactors=FALSE)  
+names(activity_lbls)[2] = "activity"          *changes to descriptive label for use in tidy dataset*  
 
-# QUESTION 5 - CREATE NEW TIDY DATASET WITH AVERAGE OF EACH VARIABLE, GROUPED BY SUBJECT AND ACTIVITY
-dat = cbind(subject, dat)                            # merges the subject data into the main dataset
-dat_melt = melt(dat, id=c("activity","subject"))     # puts dataset into long form for the summarize function
-tidy_avgs = dat_melt %>% group_by(activity,subject,variable) %>% summarize(average = mean(value))  # gets variable averages by group
+#### QUESTION 1 - MERGE DATA  
 
-# Output question 5 as per project requirement
-write.table(tidy_avgs, "tidyavgs.txt", row.name=FALSE)
+#### merges the training and test datasets - x, y, subject, and activity_lbls  
+subject = rbind(subject_train, subject_test)  
+names(subject)[1] = "subject"            *changes to descriptive variable name for use in the tidy dataset*  
+x = rbind(x_train, x_test)  
+colnames(x) = x_features$V2              *renames descriptively, as required in question #4*  
+y = rbind(y_train, y_test)  
+y = merge(y, activity_lbls, by.x="V1", by.y="V1", all=TRUE)     *essentially an "Excel vlookup" to add the more descriptive activity labels*  
+y = subset(y, select = -c(V1))          *drops the redundant variable that was duplicated in merge above ("Y1") in favor of "activity"*  
+dat = cbind(y,x)                        *merges the x and y datasets for analysis*  
 
+#### QUESTION 2 - EXTRACTS THE MEAN & SD FOR EACH VARIABLE, PLACING INTO SINGLE DATA FRAME  
 
+dat_forstats = subset(dat, select = -c(activity))  
+dat_mean = sapply(dat_forstats,mean)  
+dat_sd = sapply(dat_forstats,sd)  
+dat_stats = rbind(dat_mean, dat_sd)      *combines stats into to one data frame with mean and sd for each variable*  
 
+#### QUESTION 3 - NAME THE ACTIVITES DESCRIPTIVELY - COMPLETED EARLIER IN PROGRAM  
 
-The data are obtainable at the following link:
-<https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip>
+*completed above*  
 
-The following description of the dataset is available at:
-<http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones#>
+#### QUESTION 4 - LABEL THE VARIABLES DESCRIPTIVELY - COMPLETED EARLIER IN PROGRAM  
 
+*completed above*  
 
-### Human Activity Recognition Using Smartphones Dataset
-Version 1.0
+#### QUESTION 5 - CREATE NEW TIDY DATASET WITH AVERAGE OF EACH VARIABLE, GROUPED BY SUBJECT AND ACTIVITY, EXPORTED AS TXT FILE  
 
-- Jorge L. Reyes-Ortiz, Davide Anguita, Alessandro Ghio, Luca Oneto.
-- Smartlab - Non Linear Complex Systems Laboratory
-- DITEN - Universit‡ degli Studi di Genova.
-- Via Opera Pia 11A, I-16145, Genoa, Italy.
-- activityrecognition@smartlab.ws
-- www.smartlab.ws
+dat = cbind(subject, dat)                                       *merges the experimental subject data into the main dataset*  
+dat_melt = melt(dat, id=c("activity","subject"))                 *puts the dataset into long form for the summarize function*  
+tidy_avgs = dat_melt %>% group_by(activity,subject,variable) %>% summarize(average = mean(value))  *gets variable averages by group*  
 
+#### Output table from question 5 analysis 0 subgroup averages  
+write.table(tidy_avgs, "tidyavgs.txt", row.name=FALSE)          *exports the tidy dataset table of averages to the working directory*   
